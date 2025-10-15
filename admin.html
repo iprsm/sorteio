@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel do Administrador - Rifas</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #f2f4f8;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: linear-gradient(90deg, #007bff, #0056d6);
+      color: white;
+      padding: 1.5rem;
+      text-align: center;
+    }
+    h1 { margin: 0; }
+    main {
+      max-width: 1000px;
+      margin: 2rem auto;
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    }
+    .resumo {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+    select {
+      padding: 6px;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+    th, td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #ddd;
+      text-align: left;
+    }
+    th {
+      background: #007bff;
+      color: white;
+    }
+    tr:hover { background: #f0f8ff; }
+
+    /* Tela de login */
+    #telaLogin {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: linear-gradient(135deg, #007bff, #0056d6);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: white;
+    }
+    #telaLogin input {
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      margin-top: 10px;
+      width: 250px;
+      font-size: 1rem;
+    }
+    #telaLogin button {
+      margin-top: 15px;
+      padding: 10px 25px;
+      background: #fff;
+      color: #007bff;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    #telaLogin button:hover {
+      background: #e8e8e8;
+    }
+  </style>
+</head>
+<body>
+  <div id="telaLogin">
+    <h2>Login do Administrador</h2>
+    <input type="password" id="senhaInput" placeholder="Digite a senha" />
+    <button id="btnEntrar">Entrar</button>
+    <p id="msgErro" style="color: #ffcccc; display: none;">Senha incorreta!</p>
+  </div>
+
+  <header id="cabecalho" style="display:none;">
+    <h1>Painel do Administrador</h1>
+  </header>
+
+  <main id="painelAdmin" style="display:none;">
+    <div class="resumo">
+      <div>
+        <strong>Total de vendas:</strong> <span id="totalVendas">0</span><br>
+        <strong>Total arrecadado:</strong> R$ <span id="totalValor">0,00</span>
+      </div>
+      <div>
+        <label>Filtrar por vendedor:</label>
+        <select id="filtroVendedor">
+          <option value="">Todos</option>
+        </select>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Cartela</th>
+          <th>Número</th>
+          <th>Vendedor</th>
+          <th>Valor (R$)</th>
+        </tr>
+      </thead>
+      <tbody id="tabelaVendas"></tbody>
+    </table>
+  </main>
+
+  <script>
+    // 🔑 Senha do painel (altere aqui!)
+    const SENHA_ADMIN = "12345";
+
+    // URL do Apps Script
+    const SCRIPT_URL = "https://script.google.com/macros/s/SEU_SCRIPT_ID/exec";
+
+    const telaLogin = document.getElementById("telaLogin");
+    const painelAdmin = document.getElementById("painelAdmin");
+    const cabecalho = document.getElementById("cabecalho");
+    const senhaInput = document.getElementById("senhaInput");
+    const btnEntrar = document.getElementById("btnEntrar");
+    const msgErro = document.getElementById("msgErro");
+
+    // Login simples com localStorage
+    btnEntrar.addEventListener("click", () => {
+      if (senhaInput.value === SENHA_ADMIN) {
+        localStorage.setItem("adminAutorizado", "true");
+        exibirPainel();
+      } else {
+        msgErro.style.display = "block";
+      }
+    });
+
+    if (localStorage.getItem("adminAutorizado") === "true") {
+      exibirPainel();
+    }
+
+    function exibirPainel() {
+      telaLogin.style.display = "none";
+      painelAdmin.style.display = "block";
+      cabecalho.style.display = "block";
+      carregarVendas();
+    }
+
+    // --- Lógica do painel ---
+    const tabela = document.getElementById("tabelaVendas");
+    const totalVendas = document.getElementById("totalVendas");
+    const totalValor = document.getElementById("totalValor");
+    const filtroVendedor = document.getElementById("filtroVendedor");
+
+    let vendas = [];
+
+    async function carregarVendas() {
+      try {
+        const resp = await fetch(SCRIPT_URL);
+        vendas = await resp.json();
+        atualizarTabela();
+        atualizarFiltros();
+      } catch (err) {
+        console.error("Erro ao carregar vendas:", err);
+      }
+    }
+
+    function atualizarTabela() {
+      const vendedorSel = filtroVendedor.value;
+      const filtradas = vendedorSel ? vendas.filter(v => v.Vendedor === vendedorSel) : vendas;
+      tabela.innerHTML = "";
+      let total = 0;
+
+      filtradas.forEach(v => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${v.Data || ""}</td>
+          <td>${v.Cartela}</td>
+          <td>${v.Número || v.Numero}</td>
+          <td>${v.Vendedor}</td>
+          <td>${parseFloat(v.Valor || 0).toFixed(2)}</td>
+        `;
+        total += parseFloat(v.Valor || 0);
+        tabela.appendChild(tr);
+      });
+
+      totalVendas.textContent = filtradas.length;
+      totalValor.textContent = total.toFixed(2);
+    }
+
+    function atualizarFiltros() {
+      const vendedores = [...new Set(vendas.map(v => v.Vendedor).filter(v => v))];
+      filtroVendedor.innerHTML = `<option value="">Todos</option>` +
+        vendedores.map(v => `<option>${v}</option>`).join("");
+    }
+
+    filtroVendedor.addEventListener("change", atualizarTabela);
+    setInterval(() => {
+      if (painelAdmin.style.display === "block") carregarVendas();
+    }, 30000); // atualização automática a cada 30s
+  </script>
+</body>
+</html>
+

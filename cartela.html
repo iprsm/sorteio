@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cartela da Rifa</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #f7f7f7;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h1, h3, h2 {
+      margin: 10px 0;
+    }
+
+    .boas-vindas {
+      background: #007bff;
+      color: white;
+      padding: 12px 18px;
+      border-radius: 12px;
+      display: inline-block;
+      margin-bottom: 20px;
+      font-size: 1rem;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+    }
+
+    .cartela {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      max-width: 400px;
+      margin: 20px auto;
+    }
+
+    .numero {
+      width: 60px;
+      height: 60px;
+      border-radius: 10px;
+      background: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      border: 2px solid #007bff;
+      cursor: pointer;
+      transition: 0.2s;
+      position: relative;
+    }
+
+    .numero.vendido {
+      background: #007bff;
+      color: white;
+    }
+
+    .comprador-input {
+      display: none;
+      margin-top: 5px;
+      width: 95%;
+      font-size: 0.8rem;
+      padding: 4px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    .numero.vendido .comprador-input {
+      display: block;
+      background: #fff;
+      color: #000;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 10px 25px;
+      background: #007bff;
+      border: none;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    #resumo {
+      max-width: 400px;
+      margin: 25px auto;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      padding: 15px;
+      display: none;
+    }
+
+    #resumo table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    #resumo th, #resumo td {
+      border: 1px solid #ddd;
+      padding: 6px;
+      font-size: 0.9rem;
+    }
+
+    #resumo th {
+      background: #007bff;
+      color: white;
+    }
+
+    #botoesResumo {
+      margin-top: 15px;
+      display: flex;
+      justify-content: space-around;
+    }
+
+    #botoesResumo button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    #confirmar { background: #28a745; color: white; }
+    #cancelar { background: #dc3545; color: white; }
+  </style>
+</head>
+<body>
+  <div id="mensagemVendedor" class="boas-vindas"></div>
+
+  <h1>Cartela <span id="numCartela"></span></h1>
+  <h3>Vendedor: <span id="vendedorNome"></span></h3>
+
+  <div class="cartela" id="cartela"></div>
+  <button id="btnSalvar">Registrar Venda</button>
+
+  <div id="resumo">
+    <h3>Confirme as vendas</h3>
+    <table>
+      <thead><tr><th>Número</th><th>Comprador</th></tr></thead>
+      <tbody id="listaResumo"></tbody>
+    </table>
+    <div id="botoesResumo">
+      <button id="confirmar">Confirmar</button>
+      <button id="cancelar">Cancelar</button>
+    </div>
+  </div>
+
+  <script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/SEU_SCRIPT_ID/exec";
+    const VALOR_RIFA = 25;
+
+    const params = new URLSearchParams(window.location.search);
+    const numCartela = parseInt(params.get("cartela")) || 1;
+    const vendedorURL = params.get("vendedor");
+    const vendedorLocal = localStorage.getItem(`vendedor_${numCartela}`);
+    const vendedor = vendedorURL || vendedorLocal || "Não definido";
+
+    document.getElementById("numCartela").textContent = numCartela;
+    document.getElementById("vendedorNome").textContent = vendedor;
+    document.getElementById("mensagemVendedor").textContent = `👋 Bem-vindo, ${vendedor}! Boas vendas!`;
+
+    // Atualiza o localStorage para manter sincronizado
+    localStorage.setItem(`vendedor_${numCartela}`, vendedor);
+
+    const inicio = (numCartela - 1) * 10 + 1;
+    const fim = numCartela * 10;
+    const divCartela = document.getElementById("cartela");
+
+    const vendasSalvas = JSON.parse(localStorage.getItem(`vendas_cartela_${numCartela}`) || "[]");
+
+    for (let i = inicio; i <= fim; i++) {
+      const numStr = i.toString().padStart(4, "0");
+      const numDiv = document.createElement("div");
+      numDiv.className = "numero";
+      numDiv.innerHTML = `
+        <span>${numStr}</span>
+        <input type="text" class="comprador-input" placeholder="Comprador" />
+      `;
+
+      const vendaLocal = vendasSalvas.find(v => v.numero === numStr);
+      if (vendaLocal) {
+        numDiv.classList.add("vendido");
+        const input = numDiv.querySelector(".comprador-input");
+        input.value = vendaLocal.comprador;
+        input.style.display = "block";
+      }
+
+      numDiv.addEventListener("click", (e) => {
+        if (e.target.tagName === "INPUT") return;
+        numDiv.classList.toggle("vendido");
+        const input = numDiv.querySelector(".comprador-input");
+        if (numDiv.classList.contains("vendido")) {
+          input.style.display = "block";
+          input.focus();
+        } else {
+          input.style.display = "none";
+          input.value = "";
+        }
+      });
+
+      divCartela.appendChild(numDiv);
+    }
+
+    // MOSTRAR RESUMO
+    document.getElementById("btnSalvar").addEventListener("click", () => {
+      const vendidos = [...document.querySelectorAll(".numero.vendido")];
+      if (vendidos.length === 0) return alert("Nenhum número selecionado.");
+
+      const listaResumo = document.getElementById("listaResumo");
+      listaResumo.innerHTML = "";
+
+      for (const div of vendidos) {
+        const numero = div.querySelector("span").textContent;
+        const comprador = div.querySelector(".comprador-input").value.trim();
+        if (!comprador) return alert(`Informe o nome do comprador do número ${numero}.`);
+
+        const row = document.createElement("tr");
+        row.innerHTML = `<td>${numero}</td><td>${comprador}</td>`;
+        listaResumo.appendChild(row);
+      }
+
+      document.getElementById("resumo").style.display = "block";
+    });
+
+    // CANCELAR
+    document.getElementById("cancelar").addEventListener("click", () => {
+      document.getElementById("resumo").style.display = "none";
+    });
+
+    // CONFIRMAR
+    document.getElementById("confirmar").addEventListener("click", async () => {
+      const registros = [...document.querySelectorAll(".numero.vendido")].map(div => ({
+        numero: div.querySelector("span").textContent,
+        comprador: div.querySelector(".comprador-input").value.trim(),
+        vendedor,
+        cartela: numCartela,
+        valor: VALOR_RIFA,
+        data: new Date().toLocaleString("pt-BR")
+      }));
+
+      localStorage.setItem(`vendas_cartela_${numCartela}`, JSON.stringify(registros));
+
+      try {
+        await Promise.all(registros.map(reg =>
+          fetch(SCRIPT_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(reg)
+          })
+        ));
+        alert("✅ Vendas registradas com sucesso!");
+      } catch (err) {
+        alert("⚠️ Erro ao enviar para o Google Sheets. Mas os dados foram salvos localmente.");
+        console.error(err);
+      }
+
+      document.getElementById("resumo").style.display = "none";
+    });
+  </script>
+</body>
+</html>
+
