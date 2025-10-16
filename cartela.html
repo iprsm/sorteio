@@ -5,15 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cartela da Rifa</title>
   <style>
+    * { box-sizing: border-box; }
+
     body {
       font-family: 'Poppins', sans-serif;
       background: #f7f7f7;
       margin: 0;
       padding: 20px;
       text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
     }
 
-    h1, h3, h2 { margin: 10px 0; }
+    h1, h3, h2 {
+      margin: 10px 0;
+      font-size: clamp(1rem, 2vw + 0.5rem, 1.5rem);
+    }
 
     .boas-vindas {
       background: #007bff;
@@ -22,34 +31,34 @@
       border-radius: 12px;
       display: inline-block;
       margin-bottom: 20px;
-      font-size: 1rem;
+      font-size: clamp(0.9rem, 1vw + 0.4rem, 1.1rem);
       box-shadow: 0 3px 6px rgba(0,0,0,0.2);
     }
 
     .cartela {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
       gap: 10px;
-      max-width: 400px;
+      width: 100%;
+      max-width: 450px;
       margin: 20px auto;
     }
 
     .numero {
-      width: 60px;
-      height: 60px;
       border-radius: 10px;
       background: white;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      font-size: 1.2rem;
+      font-size: clamp(0.9rem, 1vw + 0.6rem, 1.2rem);
       border: 2px solid #007bff;
       cursor: pointer;
       transition: 0.2s;
-      position: relative;
+      padding: 10px;
     }
+
+    .numero:hover { transform: scale(1.05); }
 
     .numero.vendido { 
       background: #007bff; 
@@ -61,8 +70,8 @@
       display: none;
       margin-top: 5px;
       width: 95%;
-      font-size: 0.8rem;
-      padding: 4px;
+      font-size: clamp(0.8rem, 1vw + 0.3rem, 0.9rem);
+      padding: 5px;
       border-radius: 6px;
       border: 1px solid #ccc;
     }
@@ -76,31 +85,42 @@
 
     button {
       margin-top: 20px;
-      padding: 10px 25px;
+      padding: 14px 24px;
       background: #007bff;
       border: none;
       color: white;
-      border-radius: 8px;
+      border-radius: 10px;
       cursor: pointer;
-      font-size: 1rem;
+      font-size: clamp(0.9rem, 1vw + 0.5rem, 1.1rem);
+      font-weight: 600;
+      transition: 0.3s;
+      width: 100%;
+      max-width: 280px;
     }
 
+    button:hover { background: #0069d9; }
+
     #listaVendas {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
+      position: relative;
       background: white;
       border-top: 2px solid #007bff;
       padding: 10px;
-      max-height: 200px;
-      overflow-y: auto;
-      box-shadow: 0 -2px 8px rgba(0,0,0,0.15);
+      margin-top: 30px;
+      max-width: 480px;
+      width: 100%;
+      border-radius: 12px;
+      box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+    }
+
+    #tabelaVendas {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: clamp(0.8rem, 1vw + 0.3rem, 0.9rem);
     }
 
     #tabelaVendas th, #tabelaVendas td {
       border: 1px solid #ddd;
-      padding: 5px;
+      padding: 6px;
     }
 
     #tabelaVendas th {
@@ -108,7 +128,6 @@
       color: #fff;
     }
 
-    /* Tela de resumo */
     #resumoVenda {
       display: none;
       background: #fff;
@@ -116,33 +135,42 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.15);
       padding: 20px;
       margin: 30px auto;
-      max-width: 400px;
+      max-width: 420px;
+      width: 100%;
     }
 
     #resumoVenda h2 {
       color: #007bff;
+      font-size: clamp(1rem, 1vw + 0.8rem, 1.4rem);
     }
 
     #resumoVenda table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 10px;
+      font-size: clamp(0.85rem, 1vw + 0.3rem, 1rem);
     }
 
     #resumoVenda th, #resumoVenda td {
       border: 1px solid #ddd;
-      padding: 5px;
+      padding: 6px;
     }
 
     #pagarBtn {
       background: #00B894;
       color: white;
-      font-size: 1.1rem;
+      font-size: clamp(1rem, 1vw + 0.6rem, 1.2rem);
       margin-top: 15px;
     }
 
-    #pagarBtn:hover {
-      background: #009B76;
+    #pagarBtn:hover { background: #009B76; }
+
+    @media (max-width: 600px) {
+      .cartela {
+        grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+        gap: 8px;
+      }
+      .numero { padding: 8px; }
     }
   </style>
 </head>
@@ -221,10 +249,6 @@
       numDiv.addEventListener("click", (e) => {
         if (e.target.tagName === "INPUT") return;
         numDiv.classList.toggle("selecionado");
-        const inputs = numDiv.querySelectorAll(".comprador-input, .telefone-input");
-        inputs.forEach(input => {
-          input.style.display = numDiv.classList.contains("selecionado") ? "block" : "none";
-        });
       });
       divCartela.appendChild(numDiv);
     }
@@ -273,12 +297,11 @@
             body: JSON.stringify(reg)
           })
         ));
-      } catch (err) {
-        console.error(err);
+      } catch {
         alert("⚠️ Erro ao enviar para o Google Sheets. Mas os dados foram salvos localmente.");
       }
 
-      // Mostra resumo da venda
+      // Mostra resumo
       const tabelaResumo = document.querySelector("#tabelaResumo tbody");
       tabelaResumo.innerHTML = "";
       novasVendas.forEach(v => {
@@ -289,7 +312,9 @@
 
       const total = novasVendas.length * VALOR_RIFA;
       document.getElementById("valorTotal").textContent = `Total a pagar: R$ ${total.toFixed(2)}`;
-      document.getElementById("resumoVenda").style.display = "block";
+      const resumoVenda = document.getElementById("resumoVenda");
+      resumoVenda.style.display = "block";
+      resumoVenda.scrollIntoView({ behavior: "smooth" });
 
       document.getElementById("pagarBtn").onclick = () => {
         window.open(LINK_MERCADO_PAGO, "_blank");
