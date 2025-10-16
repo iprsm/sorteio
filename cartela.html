@@ -209,7 +209,7 @@
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/SEU_SCRIPT_ID/exec";
     const VALOR_RIFA = 25;
-    const LINK_MERCADO_PAGO = "https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=SEU_LINK_AQUI"; // <-- insira aqui seu link de pagamento
+    const LINK_MERCADO_PAGO = "https://mpago.la/13uiCtK"; // <-- insira aqui seu link de pagamento
 
     const params = new URLSearchParams(window.location.search);
     const numCartela = parseInt(params.get("cartela")) || 1;
@@ -301,9 +301,9 @@
         listaResumo.appendChild(row);
       }
 
-      const total = vendidos.length * 25,00;
+      const total = vendidos.length * VALOR_RIFA;
       document.getElementById("valorTotal").textContent = `💰 Valor total: R$ ${total.toFixed(2)}`;
-      document.getElementById("linkPagamento").href = https://mpago.la/13uiCtK;
+      document.getElementById("linkPagamento").href = LINK_MERCADO_PAGO;
       document.getElementById("pagamento").style.display = "block";
 
       document.getElementById("resumo").style.display = "block";
