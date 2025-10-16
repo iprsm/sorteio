@@ -58,7 +58,8 @@
       color: white;
     }
 
-    .comprador-input {
+    .comprador-input,
+    .telefone-input {
       display: none;
       margin-top: 5px;
       width: 95%;
@@ -68,7 +69,8 @@
       border: 1px solid #ccc;
     }
 
-    .numero.vendido .comprador-input {
+    .numero.vendido .comprador-input,
+    .numero.vendido .telefone-input {
       display: block;
       background: #fff;
       color: #000;
@@ -141,7 +143,7 @@
   <div id="resumo">
     <h3>Confirme as vendas</h3>
     <table>
-      <thead><tr><th>Número</th><th>Comprador</th></tr></thead>
+      <thead><tr><th>Número</th><th>Comprador</th><th>Telefone</th></tr></thead>
       <tbody id="listaResumo"></tbody>
     </table>
     <div id="botoesResumo">
@@ -164,7 +166,6 @@
     document.getElementById("vendedorNome").textContent = vendedor;
     document.getElementById("mensagemVendedor").textContent = `👋 Bem-vindo, ${vendedor}! Boas vendas!`;
 
-    // Atualiza o localStorage para manter sincronizado
     localStorage.setItem(`vendedor_${numCartela}`, vendedor);
 
     const inicio = (numCartela - 1) * 10 + 1;
@@ -180,33 +181,41 @@
       numDiv.innerHTML = `
         <span>${numStr}</span>
         <input type="text" class="comprador-input" placeholder="Comprador" />
+        <input type="tel" class="telefone-input" placeholder="Telefone" maxlength="15" />
       `;
 
       const vendaLocal = vendasSalvas.find(v => v.numero === numStr);
       if (vendaLocal) {
         numDiv.classList.add("vendido");
-        const input = numDiv.querySelector(".comprador-input");
-        input.value = vendaLocal.comprador;
-        input.style.display = "block";
+        numDiv.querySelector(".comprador-input").value = vendaLocal.comprador || "";
+        numDiv.querySelector(".telefone-input").value = vendaLocal.telefone || "";
       }
 
       numDiv.addEventListener("click", (e) => {
         if (e.target.tagName === "INPUT") return;
         numDiv.classList.toggle("vendido");
-        const input = numDiv.querySelector(".comprador-input");
-        if (numDiv.classList.contains("vendido")) {
-          input.style.display = "block";
-          input.focus();
-        } else {
-          input.style.display = "none";
-          input.value = "";
-        }
+        const inputs = numDiv.querySelectorAll(".comprador-input, .telefone-input");
+        inputs.forEach(input => {
+          input.style.display = numDiv.classList.contains("vendido") ? "block" : "none";
+          if (numDiv.classList.contains("vendido")) input.focus();
+          else input.value = "";
+        });
       });
 
       divCartela.appendChild(numDiv);
     }
 
-    // MOSTRAR RESUMO
+    // Máscara automática de telefone
+    document.addEventListener("input", (e) => {
+      if (e.target.classList.contains("telefone-input")) {
+        let v = e.target.value.replace(/\D/g, "");
+        v = v.replace(/^(\d{2})(\d)/g, "($1) $2");
+        v = v.replace(/(\d{5})(\d)/, "$1-$2");
+        e.target.value = v.slice(0, 15);
+      }
+    });
+
+    // BOTÃO REGISTRAR VENDA
     document.getElementById("btnSalvar").addEventListener("click", () => {
       const vendidos = [...document.querySelectorAll(".numero.vendido")];
       if (vendidos.length === 0) return alert("Nenhum número selecionado.");
@@ -217,10 +226,13 @@
       for (const div of vendidos) {
         const numero = div.querySelector("span").textContent;
         const comprador = div.querySelector(".comprador-input").value.trim();
+        const telefone = div.querySelector(".telefone-input").value.trim();
+
         if (!comprador) return alert(`Informe o nome do comprador do número ${numero}.`);
+        if (!telefone) return alert(`Informe o telefone do comprador do número ${numero}.`);
 
         const row = document.createElement("tr");
-        row.innerHTML = `<td>${numero}</td><td>${comprador}</td>`;
+        row.innerHTML = `<td>${numero}</td><td>${comprador}</td><td>${telefone}</td>`;
         listaResumo.appendChild(row);
       }
 
@@ -237,6 +249,7 @@
       const registros = [...document.querySelectorAll(".numero.vendido")].map(div => ({
         numero: div.querySelector("span").textContent,
         comprador: div.querySelector(".comprador-input").value.trim(),
+        telefone: div.querySelector(".telefone-input").value.trim(),
         vendedor,
         cartela: numCartela,
         valor: VALOR_RIFA,
@@ -264,4 +277,3 @@
   </script>
 </body>
 </html>
-
