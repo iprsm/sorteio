@@ -51,7 +51,11 @@
       position: relative;
     }
 
-    .numero.vendido { background: #007bff; color: white; }
+    .numero.vendido { 
+      background: #007bff; 
+      color: white; 
+      cursor: not-allowed;
+    }
 
     .comprador-input, .telefone-input {
       display: none;
@@ -63,8 +67,8 @@
       border: 1px solid #ccc;
     }
 
-    .numero.vendido .comprador-input, 
-    .numero.vendido .telefone-input {
+    .numero.selecionado .comprador-input, 
+    .numero.selecionado .telefone-input {
       display: block;
       background: #fff;
       color: #000;
@@ -80,46 +84,6 @@
       cursor: pointer;
       font-size: 1rem;
     }
-
-    #resumo {
-      max-width: 400px;
-      margin: 25px auto;
-      background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-      padding: 15px;
-      display: none;
-    }
-
-    #resumo table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-
-    #resumo th, #resumo td {
-      border: 1px solid #ddd;
-      padding: 6px;
-      font-size: 0.9rem;
-    }
-
-    #resumo th { background: #007bff; color: white; }
-
-    #botoesResumo {
-      margin-top: 15px;
-      display: flex;
-      justify-content: space-around;
-    }
-
-    #botoesResumo button {
-      padding: 8px 16px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    #confirmar { background: #28a745; color: white; }
-    #cancelar { background: #dc3545; color: white; }
 
     /* Lista fixa de vendas */
     #listaVendas {
@@ -161,10 +125,6 @@
       margin-top: 10px;
       color: #28a745;
     }
-
-    #pagamento {
-      margin-top: 10px;
-    }
   </style>
 </head>
 <body>
@@ -175,27 +135,6 @@
 
   <div class="cartela" id="cartela"></div>
   <button id="btnSalvar">Registrar Venda</button>
-
-  <div id="resumo">
-    <h3>Confirme as vendas</h3>
-    <table>
-      <thead><tr><th>Número</th><th>Comprador</th><th>Telefone</th></tr></thead>
-      <tbody id="listaResumo"></tbody>
-    </table>
-
-    <div class="valor-total" id="valorTotal"></div>
-
-    <div id="pagamento" style="display:none;">
-      <a id="linkPagamento" target="_blank">
-        <button style="background:#00a650;">💳 Pagar com Mercado Pago</button>
-      </a>
-    </div>
-
-    <div id="botoesResumo">
-      <button id="confirmar">Confirmar</button>
-      <button id="cancelar">Cancelar</button>
-    </div>
-  </div>
 
   <!-- Lista fixa de vendas -->
   <div id="listaVendas">
@@ -209,7 +148,7 @@
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/SEU_SCRIPT_ID/exec";
     const VALOR_RIFA = 25;
-    const LINK_MERCADO_PAGO = "https://mpago.la/13uiCtK"; // <-- insira aqui seu link de pagamento
+    const LINK_MERCADO_PAGO = "https://mpago.la/13uiCtK"; // <-- coloque aqui seu link do Mercado Pago
 
     const params = new URLSearchParams(window.location.search);
     const numCartela = parseInt(params.get("cartela")) || 1;
@@ -227,7 +166,7 @@
     const divCartela = document.getElementById("cartela");
     const vendasSalvas = JSON.parse(localStorage.getItem(`vendas_cartela_${numCartela}`) || "[]");
 
-    // Função para atualizar a lista fixa
+    // Atualiza lista fixa
     function atualizarListaVendas() {
       const corpo = document.getElementById("tabelaVendasBody");
       corpo.innerHTML = "";
@@ -239,9 +178,13 @@
       });
     }
 
-    // Cria cartela
+    // Cria cartela com apenas os números ainda disponíveis
     for (let i = inicio; i <= fim; i++) {
       const numStr = i.toString().padStart(4, "0");
+      const jaVendido = vendasSalvas.find(v => v.numero === numStr);
+
+      if (jaVendido) continue; // não exibe se já estiver vendido
+
       const numDiv = document.createElement("div");
       numDiv.className = "numero";
       numDiv.innerHTML = `
@@ -250,20 +193,13 @@
         <input type="tel" class="telefone-input" placeholder="Telefone" maxlength="15" />
       `;
 
-      const vendaLocal = vendasSalvas.find(v => v.numero === numStr);
-      if (vendaLocal) {
-        numDiv.classList.add("vendido");
-        numDiv.querySelector(".comprador-input").value = vendaLocal.comprador || "";
-        numDiv.querySelector(".telefone-input").value = vendaLocal.telefone || "";
-      }
-
       numDiv.addEventListener("click", (e) => {
         if (e.target.tagName === "INPUT") return;
-        numDiv.classList.toggle("vendido");
+        numDiv.classList.toggle("selecionado");
         const inputs = numDiv.querySelectorAll(".comprador-input, .telefone-input");
         inputs.forEach(input => {
-          input.style.display = numDiv.classList.contains("vendido") ? "block" : "none";
-          if (numDiv.classList.contains("vendido")) input.focus();
+          input.style.display = numDiv.classList.contains("selecionado") ? "block" : "none";
+          if (numDiv.classList.contains("selecionado")) input.focus();
           else input.value = "";
         });
       });
@@ -271,7 +207,7 @@
       divCartela.appendChild(numDiv);
     }
 
-    // Máscara de telefone
+    // Máscara telefone
     document.addEventListener("input", (e) => {
       if (e.target.classList.contains("telefone-input")) {
         let v = e.target.value.replace(/\D/g, "");
@@ -281,72 +217,51 @@
       }
     });
 
-    // BOTÃO REGISTRAR VENDA
-    document.getElementById("btnSalvar").addEventListener("click", () => {
-      const vendidos = [...document.querySelectorAll(".numero.vendido")];
-      if (vendidos.length === 0) return alert("Nenhum número selecionado.");
+    // Registrar venda direto com redirecionamento ao Mercado Pago
+    document.getElementById("btnSalvar").addEventListener("click", async () => {
+      const selecionados = [...document.querySelectorAll(".numero.selecionado")];
+      if (selecionados.length === 0) return alert("Nenhum número selecionado.");
 
-      const listaResumo = document.getElementById("listaResumo");
-      listaResumo.innerHTML = "";
-
-      for (const div of vendidos) {
+      const novasVendas = [];
+      for (const div of selecionados) {
         const numero = div.querySelector("span").textContent;
         const comprador = div.querySelector(".comprador-input").value.trim();
         const telefone = div.querySelector(".telefone-input").value.trim();
         if (!comprador) return alert(`Informe o nome do comprador do número ${numero}.`);
         if (!telefone) return alert(`Informe o telefone do comprador do número ${numero}.`);
 
-        const row = document.createElement("tr");
-        row.innerHTML = `<td>${numero}</td><td>${comprador}</td><td>${telefone}</td>`;
-        listaResumo.appendChild(row);
+        novasVendas.push({
+          numero,
+          comprador,
+          telefone,
+          vendedor,
+          cartela: numCartela,
+          valor: VALOR_RIFA,
+          data: new Date().toLocaleString("pt-BR")
+        });
       }
 
-      const total = vendidos.length * VALOR_RIFA;
-      document.getElementById("valorTotal").textContent = `💰 Valor total: R$ ${total.toFixed(2)}`;
-      document.getElementById("linkPagamento").href = LINK_MERCADO_PAGO;
-      document.getElementById("pagamento").style.display = "block";
-
-      document.getElementById("resumo").style.display = "block";
-    });
-
-    // CANCELAR
-    document.getElementById("cancelar").addEventListener("click", () => {
-      document.getElementById("resumo").style.display = "none";
-    });
-
-    // CONFIRMAR
-    document.getElementById("confirmar").addEventListener("click", async () => {
-      const registros = [...document.querySelectorAll(".numero.vendido")].map(div => ({
-        numero: div.querySelector("span").textContent,
-        comprador: div.querySelector(".comprador-input").value.trim(),
-        telefone: div.querySelector(".telefone-input").value.trim(),
-        vendedor,
-        cartela: numCartela,
-        valor: VALOR_RIFA,
-        data: new Date().toLocaleString("pt-BR")
-      }));
-
-      localStorage.setItem(`vendas_cartela_${numCartela}`, JSON.stringify(registros));
+      const vendasAtualizadas = [...vendasSalvas, ...novasVendas];
+      localStorage.setItem(`vendas_cartela_${numCartela}`, JSON.stringify(vendasAtualizadas));
 
       try {
-        await Promise.all(registros.map(reg =>
+        await Promise.all(novasVendas.map(reg =>
           fetch(SCRIPT_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(reg)
           })
         ));
-        alert("✅ Vendas registradas com sucesso!");
-        atualizarListaVendas();
       } catch (err) {
         alert("⚠️ Erro ao enviar para o Google Sheets. Mas os dados foram salvos localmente.");
         console.error(err);
       }
 
-      document.getElementById("resumo").style.display = "none";
+      alert("✅ Vendas registradas com sucesso! Redirecionando para o pagamento...");
+      window.location.href = LINK_MERCADO_PAGO;
     });
 
-    atualizarListaVendas(); // exibe as vendas salvas ao carregar
+    atualizarListaVendas();
   </script>
 </body>
 </html>
