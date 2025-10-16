@@ -13,9 +13,7 @@
       text-align: center;
     }
 
-    h1, h3, h2 {
-      margin: 10px 0;
-    }
+    h1, h3, h2 { margin: 10px 0; }
 
     .boas-vindas {
       background: #007bff;
@@ -53,13 +51,9 @@
       position: relative;
     }
 
-    .numero.vendido {
-      background: #007bff;
-      color: white;
-    }
+    .numero.vendido { background: #007bff; color: white; }
 
-    .comprador-input,
-    .telefone-input {
+    .comprador-input, .telefone-input {
       display: none;
       margin-top: 5px;
       width: 95%;
@@ -69,7 +63,7 @@
       border: 1px solid #ccc;
     }
 
-    .numero.vendido .comprador-input,
+    .numero.vendido .comprador-input, 
     .numero.vendido .telefone-input {
       display: block;
       background: #fff;
@@ -109,10 +103,7 @@
       font-size: 0.9rem;
     }
 
-    #resumo th {
-      background: #007bff;
-      color: white;
-    }
+    #resumo th { background: #007bff; color: white; }
 
     #botoesResumo {
       margin-top: 15px;
@@ -129,6 +120,51 @@
 
     #confirmar { background: #28a745; color: white; }
     #cancelar { background: #dc3545; color: white; }
+
+    /* Lista fixa de vendas */
+    #listaVendas {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      border-top: 2px solid #007bff;
+      padding: 10px;
+      max-height: 200px;
+      overflow-y: auto;
+      box-shadow: 0 -2px 8px rgba(0,0,0,0.15);
+    }
+
+    #listaVendas h3 {
+      margin: 5px 0;
+      color: #007bff;
+    }
+
+    #tabelaVendas {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    #tabelaVendas th, #tabelaVendas td {
+      border: 1px solid #ddd;
+      padding: 5px;
+    }
+
+    #tabelaVendas th {
+      background: #007bff;
+      color: #fff;
+    }
+
+    .valor-total {
+      font-weight: bold;
+      margin-top: 10px;
+      color: #28a745;
+    }
+
+    #pagamento {
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -146,15 +182,34 @@
       <thead><tr><th>Número</th><th>Comprador</th><th>Telefone</th></tr></thead>
       <tbody id="listaResumo"></tbody>
     </table>
+
+    <div class="valor-total" id="valorTotal"></div>
+
+    <div id="pagamento" style="display:none;">
+      <a id="linkPagamento" target="_blank">
+        <button style="background:#00a650;">💳 Pagar com Mercado Pago</button>
+      </a>
+    </div>
+
     <div id="botoesResumo">
       <button id="confirmar">Confirmar</button>
       <button id="cancelar">Cancelar</button>
     </div>
   </div>
 
+  <!-- Lista fixa de vendas -->
+  <div id="listaVendas">
+    <h3>📋 Vendas Realizadas</h3>
+    <table id="tabelaVendas">
+      <thead><tr><th>Número</th><th>Comprador</th><th>Telefone</th></tr></thead>
+      <tbody id="tabelaVendasBody"></tbody>
+    </table>
+  </div>
+
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/SEU_SCRIPT_ID/exec";
     const VALOR_RIFA = 25;
+    const LINK_MERCADO_PAGO = "https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=SEU_LINK_AQUI"; // <-- insira aqui seu link de pagamento
 
     const params = new URLSearchParams(window.location.search);
     const numCartela = parseInt(params.get("cartela")) || 1;
@@ -165,15 +220,26 @@
     document.getElementById("numCartela").textContent = numCartela;
     document.getElementById("vendedorNome").textContent = vendedor;
     document.getElementById("mensagemVendedor").textContent = `👋 Bem-vindo, ${vendedor}! Boas vendas!`;
-
     localStorage.setItem(`vendedor_${numCartela}`, vendedor);
 
     const inicio = (numCartela - 1) * 10 + 1;
     const fim = numCartela * 10;
     const divCartela = document.getElementById("cartela");
-
     const vendasSalvas = JSON.parse(localStorage.getItem(`vendas_cartela_${numCartela}`) || "[]");
 
+    // Função para atualizar a lista fixa
+    function atualizarListaVendas() {
+      const corpo = document.getElementById("tabelaVendasBody");
+      corpo.innerHTML = "";
+      const vendas = JSON.parse(localStorage.getItem(`vendas_cartela_${numCartela}`) || "[]");
+      vendas.forEach(v => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${v.numero}</td><td>${v.comprador}</td><td>${v.telefone}</td>`;
+        corpo.appendChild(tr);
+      });
+    }
+
+    // Cria cartela
     for (let i = inicio; i <= fim; i++) {
       const numStr = i.toString().padStart(4, "0");
       const numDiv = document.createElement("div");
@@ -205,7 +271,7 @@
       divCartela.appendChild(numDiv);
     }
 
-    // Máscara automática de telefone
+    // Máscara de telefone
     document.addEventListener("input", (e) => {
       if (e.target.classList.contains("telefone-input")) {
         let v = e.target.value.replace(/\D/g, "");
@@ -227,7 +293,6 @@
         const numero = div.querySelector("span").textContent;
         const comprador = div.querySelector(".comprador-input").value.trim();
         const telefone = div.querySelector(".telefone-input").value.trim();
-
         if (!comprador) return alert(`Informe o nome do comprador do número ${numero}.`);
         if (!telefone) return alert(`Informe o telefone do comprador do número ${numero}.`);
 
@@ -235,6 +300,11 @@
         row.innerHTML = `<td>${numero}</td><td>${comprador}</td><td>${telefone}</td>`;
         listaResumo.appendChild(row);
       }
+
+      const total = vendidos.length * 25,00;
+      document.getElementById("valorTotal").textContent = `💰 Valor total: R$ ${total.toFixed(2)}`;
+      document.getElementById("linkPagamento").href = https://mpago.la/13uiCtK;
+      document.getElementById("pagamento").style.display = "block";
 
       document.getElementById("resumo").style.display = "block";
     });
@@ -267,6 +337,7 @@
           })
         ));
         alert("✅ Vendas registradas com sucesso!");
+        atualizarListaVendas();
       } catch (err) {
         alert("⚠️ Erro ao enviar para o Google Sheets. Mas os dados foram salvos localmente.");
         console.error(err);
@@ -274,6 +345,8 @@
 
       document.getElementById("resumo").style.display = "none";
     });
+
+    atualizarListaVendas(); // exibe as vendas salvas ao carregar
   </script>
 </body>
 </html>
