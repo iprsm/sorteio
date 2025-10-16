@@ -85,7 +85,6 @@
       font-size: 1rem;
     }
 
-    /* Lista fixa de vendas */
     #listaVendas {
       position: fixed;
       bottom: 0;
@@ -99,17 +98,6 @@
       box-shadow: 0 -2px 8px rgba(0,0,0,0.15);
     }
 
-    #listaVendas h3 {
-      margin: 5px 0;
-      color: #007bff;
-    }
-
-    #tabelaVendas {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.9rem;
-    }
-
     #tabelaVendas th, #tabelaVendas td {
       border: 1px solid #ddd;
       padding: 5px;
@@ -120,10 +108,41 @@
       color: #fff;
     }
 
-    .valor-total {
-      font-weight: bold;
+    /* Tela de resumo */
+    #resumoVenda {
+      display: none;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      padding: 20px;
+      margin: 30px auto;
+      max-width: 400px;
+    }
+
+    #resumoVenda h2 {
+      color: #007bff;
+    }
+
+    #resumoVenda table {
+      width: 100%;
+      border-collapse: collapse;
       margin-top: 10px;
-      color: #28a745;
+    }
+
+    #resumoVenda th, #resumoVenda td {
+      border: 1px solid #ddd;
+      padding: 5px;
+    }
+
+    #pagarBtn {
+      background: #00B894;
+      color: white;
+      font-size: 1.1rem;
+      margin-top: 15px;
+    }
+
+    #pagarBtn:hover {
+      background: #009B76;
     }
   </style>
 </head>
@@ -136,7 +155,16 @@
   <div class="cartela" id="cartela"></div>
   <button id="btnSalvar">Registrar Venda</button>
 
-  <!-- Lista fixa de vendas -->
+  <div id="resumoVenda">
+    <h2>Resumo da Venda</h2>
+    <table id="tabelaResumo">
+      <thead><tr><th>Número</th><th>Comprador</th><th>Telefone</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <h3 id="valorTotal" style="color:#28a745;margin-top:10px;"></h3>
+    <button id="pagarBtn">Pagar com Mercado Pago 💳</button>
+  </div>
+
   <div id="listaVendas">
     <h3>📋 Vendas Realizadas</h3>
     <table id="tabelaVendas">
@@ -148,7 +176,7 @@
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/SEU_SCRIPT_ID/exec";
     const VALOR_RIFA = 25;
-    const LINK_MERCADO_PAGO = "https://mpago.la/13uiCtK"; // <-- coloque aqui seu link do Mercado Pago
+    const LINK_MERCADO_PAGO = "https://mpago.la/13uiCtK"; // <-- seu link Mercado Pago
 
     const params = new URLSearchParams(window.location.search);
     const numCartela = parseInt(params.get("cartela")) || 1;
@@ -166,7 +194,6 @@
     const divCartela = document.getElementById("cartela");
     const vendasSalvas = JSON.parse(localStorage.getItem(`vendas_cartela_${numCartela}`) || "[]");
 
-    // Atualiza lista fixa
     function atualizarListaVendas() {
       const corpo = document.getElementById("tabelaVendasBody");
       corpo.innerHTML = "";
@@ -178,12 +205,11 @@
       });
     }
 
-    // Cria cartela com apenas os números ainda disponíveis
+    // Cria cartela
     for (let i = inicio; i <= fim; i++) {
       const numStr = i.toString().padStart(4, "0");
       const jaVendido = vendasSalvas.find(v => v.numero === numStr);
-
-      if (jaVendido) continue; // não exibe se já estiver vendido
+      if (jaVendido) continue;
 
       const numDiv = document.createElement("div");
       numDiv.className = "numero";
@@ -192,22 +218,17 @@
         <input type="text" class="comprador-input" placeholder="Comprador" />
         <input type="tel" class="telefone-input" placeholder="Telefone" maxlength="15" />
       `;
-
       numDiv.addEventListener("click", (e) => {
         if (e.target.tagName === "INPUT") return;
         numDiv.classList.toggle("selecionado");
         const inputs = numDiv.querySelectorAll(".comprador-input, .telefone-input");
         inputs.forEach(input => {
           input.style.display = numDiv.classList.contains("selecionado") ? "block" : "none";
-          if (numDiv.classList.contains("selecionado")) input.focus();
-          else input.value = "";
         });
       });
-
       divCartela.appendChild(numDiv);
     }
 
-    // Máscara telefone
     document.addEventListener("input", (e) => {
       if (e.target.classList.contains("telefone-input")) {
         let v = e.target.value.replace(/\D/g, "");
@@ -217,7 +238,7 @@
       }
     });
 
-    // Registrar venda direto com redirecionamento ao Mercado Pago
+    // Registrar venda e mostrar resumo
     document.getElementById("btnSalvar").addEventListener("click", async () => {
       const selecionados = [...document.querySelectorAll(".numero.selecionado")];
       if (selecionados.length === 0) return alert("Nenhum número selecionado.");
@@ -253,12 +274,28 @@
           })
         ));
       } catch (err) {
-        alert("⚠️ Erro ao enviar para o Google Sheets. Mas os dados foram salvos localmente.");
         console.error(err);
+        alert("⚠️ Erro ao enviar para o Google Sheets. Mas os dados foram salvos localmente.");
       }
 
-      alert("✅ Vendas registradas com sucesso! Redirecionando para o pagamento...");
-      window.location.href = LINK_MERCADO_PAGO;
+      // Mostra resumo da venda
+      const tabelaResumo = document.querySelector("#tabelaResumo tbody");
+      tabelaResumo.innerHTML = "";
+      novasVendas.forEach(v => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${v.numero}</td><td>${v.comprador}</td><td>${v.telefone}</td>`;
+        tabelaResumo.appendChild(tr);
+      });
+
+      const total = novasVendas.length * VALOR_RIFA;
+      document.getElementById("valorTotal").textContent = `Total a pagar: R$ ${total.toFixed(2)}`;
+      document.getElementById("resumoVenda").style.display = "block";
+
+      document.getElementById("pagarBtn").onclick = () => {
+        window.open(LINK_MERCADO_PAGO, "_blank");
+      };
+
+      atualizarListaVendas();
     });
 
     atualizarListaVendas();
