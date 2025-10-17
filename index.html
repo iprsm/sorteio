@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sorteio Beneficente - IPR São Miguel Paulista</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="logos">
+      <img src="logoiprsm.png" alt="Logo IPR São Miguel" class="logo-ipr">
+      <img src="ipr_kids_icon.png" alt="Logo IPR Kids" class="logo-kids">
+    </div>
+    <h1>Sorteio Beneficente</h1>
+    <p>Ajude na reforma e construção da igreja e das salas do Ministério Infantil IPRKids!</p>
+  </header>
+
+  <section class="banner">
+    <h2>✨ Participe e abençoe nossa Obra! ✨</h2>
+  </section>
+
+    <section class="rifa">
+      <h2>🎟️ Como participar</h2>
+      <p>Cada número da rifa custa apenas <strong>R$ 25,00</strong> e toda renda será destinada à reforma e construção da Igreja do Ministério Infantil.</p>
+      
+      <div id="contador">
+        <h3>⏳ Faltam:</h3>
+        <div id="timer">
+          <span id="dias">69</span>d :
+          <span id="horas">20</span>h :
+          <span id="minutos">13</span>m :
+          <span id="segundos">25</span>s
+        </div>
+      </div>
+
+<div class="opcoes-cotas">
+  <button onclick="comprarCota(10, 20)">Cota 10 números - R$ 20,00</button>
+  <button onclick="comprarCota(20, 30)">Cota 20 números - R$ 30,00</button>
+  <button onclick="comprarCota(30, 50)">Cota 30 números - R$ 50,00</button>
+  <button onclick="comprarCota(70, 100)">Cota 70 números - R$ 100,00</button>
+</div>
+
+      <p class="info-sorteio">
+        📅 Sorteio: 24 de Dezembro de 2025<br>
+        📍 Local: R. Avinhado, 222 - Vila Nova Curuca, São Paulo - SP, 08032-320
+ 
+      </p>
+    </section>
+  <main>
+    <section class="premios">
+      <h2>🎁 Prêmios</h2>
+      <div class="cards">
+        <div class="card">
+          <img src="motoeletrica.png" alt="Moto Elétrica">
+          <h3>Moto Elétrica 0km</h3>
+          <p>Confortável, moderna e ecológica. Leve essa moto para casa!</p>
+        </div>
+        <div class="card">
+          <img src="tv50.png" alt="TV 50 polegadas">
+          <h3>Smart TV 50”</h3>
+          <p>Assista seus filmes e séries com qualidade 4K e som envolvente.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Igreja Presbiteriana Renovada de São Miguel Paulista | Ministério Infantil IPRKids</p>
+  </footer>
+
+  <!-- Botão WhatsApp -->
+  <a href="https://wa.me/5511979654420?text=Olá! Quero participar do sorteio beneficente da IPR São Miguel Paulista!" 
+     class="whatsapp" target="_blank" aria-label="WhatsApp">
+    💬
+  </a>
+
+  <script src="script.js"></script>
+
+<!-- Pop-up de dados do comprador -->
+<div id="popup" class="popup">
+  <div class="popup-content">
+    <h3>Informe seus dados</h3>
+    <label for="nome">Nome completo:</label>
+    <input type="text" id="nome" placeholder="Digite seu nome completo">
+
+    <label for="telefone">Telefone (com DDD):</label>
+    <input type="text" id="telefone" placeholder="Ex: 11999999999" maxlength="15">
+
+    <div class="popup-botoes">
+      <button id="confirmarBtn">Confirmar</button>
+      <button id="cancelarBtn">Cancelar</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>
+
