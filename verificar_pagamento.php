@@ -2,7 +2,7 @@
 header('Content-Type: application/json');
 
 // Substitua pelo seu Access Token real do Mercado Pago:
-$access_token = 'APP_USR-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx-xxxxxx';
+$access_token = 'APP_USR-7241542907958146-101711-2eff2d4edffdd44cae86ff97238ad40b-2931956288';
 
 if (!isset($_GET['payment_id'])) {
   echo json_encode(['error' => 'ID de pagamento não informado']);
