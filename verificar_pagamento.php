@@ -1,33 +1,46 @@
 <?php
-header('Content-Type: application/json');
+// verificar_pagamento.php — sem SDK
+header('Content-Type: application/json; charset=utf-8');
 
-// Substitua pelo seu Access Token real do Mercado Pago:
-$access_token = 'APP_USR-7241542907958146-101711-2eff2d4edffdd44cae86ff97238ad40b-2931956288';
-
-if (!isset($_GET['payment_id'])) {
-  echo json_encode(['error' => 'ID de pagamento não informado']);
-  exit;
+$access_token = getenv('MP_ACCESS_TOKEN');
+if (!$access_token) {
+    $access_token = 'APP_USR-2221051077100454-101711-2e56ad1a374acc9fcb5370beb067fe35-169840778'; // substitua em testes
 }
 
-$payment_id = $_GET['payment_id'];
-$url = "https://api.mercadopago.com/v1/payments/$payment_id";
+$id = $_GET['payment_id'] ?? $_GET['collection_id'] ?? null;
+$id = preg_replace('/\D/', '', $id ?? '');
 
-$ch = curl_init();
-curl_setopt($ch, CURLOPT_URL, $url);
+if (!$id) {
+    echo json_encode(['error' => 'payment_id não informado']);
+    exit;
+}
+
+$ch = curl_init("https://api.mercadopago.com/v1/payments/{$id}");
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_HTTPHEADER, [
-  "Authorization: Bearer $access_token"
+    "Content-Type: application/json",
+    "Authorization: Bearer $access_token"
 ]);
+
 $response = curl_exec($ch);
+$httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+if (curl_errno($ch)) {
+    echo json_encode(['error' => curl_error($ch)]);
+    curl_close($ch);
+    exit;
+}
 curl_close($ch);
 
-if ($response) {
-  $data = json_decode($response, true);
-  echo json_encode([
-    'status' => $data['status'] ?? 'unknown'
-  ]);
+if ($httpcode >= 200 && $httpcode < 300) {
+    $result = json_decode($response, true);
+    echo json_encode([
+        'status' => $result['status'] ?? 'desconhecido',
+        'status_detail' => $result['status_detail'] ?? '',
+        'id' => $result['id'] ?? null,
+        'transaction_amount' => $result['transaction_amount'] ?? null
+    ]);
 } else {
-  echo json_encode(['error' => 'Falha na comunicação com o Mercado Pago']);
+    echo json_encode(['error' => 'Erro ao consultar pagamento', 'response' => $response]);
 }
-?>
 
