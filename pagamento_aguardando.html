@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pagamento Concluído - IPR São Miguel</title>
+  <title>Aguardando Confirmação - IPR São Miguel</title>
   <link rel="stylesheet" href="style.css">
   <style>
     body {
@@ -15,92 +15,73 @@
       text-align: center;
       font-family: 'Poppins', sans-serif;
     }
-
-    .sucesso {
+    .loading {
       background: #fff;
       padding: 40px;
       border-radius: 20px;
       box-shadow: 0 0 20px rgba(0,0,0,0.1);
       max-width: 400px;
-      animation: fadeIn 0.6s ease;
     }
-
-    h2 {
-      color: #27ae60;
-      margin-bottom: 10px;
+    .spinner {
+      border: 6px solid #f3f3f3;
+      border-top: 6px solid #f39c12;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
     }
-
-    .numeros {
-      margin: 20px 0;
-      font-size: 1.2em;
-      color: #e67e22;
-      font-weight: 600;
-    }
-
-    button {
-      background: #f39c12;
-      color: white;
-      border: none;
-      padding: 12px 25px;
-      border-radius: 25px;
-      font-size: 1em;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    button:hover {
-      background: #d35400;
-      transform: scale(1.05);
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: scale(0.9); }
-      to { opacity: 1; transform: scale(1); }
-    }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
-  <div class="sucesso">
-    <h2>🎉 Pagamento realizado com sucesso!</h2>
-    <p>Seus números da rifa foram sorteados automaticamente:</p>
-    <div id="numeros" class="numeros"></div>
-    <p>Você também receberá uma mensagem no WhatsApp com os detalhes.</p>
-    <button onclick="voltarInicio()">Voltar à Página Principal</button>
+  <div class="loading">
+    <h2>⏳ Aguardando confirmação do pagamento...</h2>
+    <div class="spinner"></div>
+    <p>Isso pode levar alguns segundos após o pagamento PIX.</p>
   </div>
 
   <script>
-    function gerarNumeros(qtd) {
-      const numeros = [];
-      while (numeros.length < qtd) {
-        const n = Math.floor(Math.random() * 999) + 1;
-        if (!numeros.includes(n)) numeros.push(n);
+    const searchParams = new URLSearchParams(window.location.search);
+    const paymentId = searchParams.get("payment_id");
+    const pref = searchParams.get("pref");
+
+    async function verificarStatusPayment(paymentId) {
+      try {
+        const response = await fetch(`verificar_pagamento.php?payment_id=${paymentId}`);
+        const data = await response.json();
+
+        if (data.status === "approved") {
+          window.location.href = "pagamento_concluido.html";
+        } else {
+          setTimeout(() => verificarStatusPayment(paymentId), 5000);
+        }
+      } catch (err) {
+        console.error("Erro ao verificar pagamento:", err);
+        setTimeout(() => verificarStatusPayment(paymentId), 8000);
       }
-      return numeros.sort((a, b) => a - b);
     }
 
-    function enviarWhatsapp(nome, telefone, numeros, valor) {
-      const mensagem = `Olá ${nome}! 🎉 Seu pagamento foi confirmado.\n\nVocê recebeu os seguintes números da rifa:\n${numeros.join(", ")}\n\nValor: R$ ${valor},00\n\nBoa sorte no sorteio! 🍀`;
-      const link = `https://wa.me/55${telefone}?text=${encodeURIComponent(mensagem)}`;
-      window.open(link, "_blank");
+    async function verificarStatusPref(pref) {
+      try {
+        const response = await fetch(`verificar_pref.php?pref=${encodeURIComponent(pref)}`);
+        const data = await response.json();
+
+        if (data.status === "aprovado" || data.status === "approved") {
+          // caso devolva payment_id, encaminha para concluído
+          window.location.href = "pagamento_concluido.html";
+        } else {
+          setTimeout(() => verificarStatusPref(pref), 5000);
+        }
+      } catch (err) {
+        console.error("Erro ao verificar preferência:", err);
+        setTimeout(() => verificarStatusPref(pref), 8000);
+      }
     }
 
-    const nome = localStorage.getItem("compradorNome");
-    const telefone = localStorage.getItem("compradorTelefone");
-    const qtd = parseInt(localStorage.getItem("cotaQtd"));
-    const valor = localStorage.getItem("cotaValor");
-
-    if (nome && telefone && qtd && valor) {
-      const numeros = gerarNumeros(qtd);
-      document.getElementById("numeros").innerText = numeros.join(", ");
-      enviarWhatsapp(nome, telefone, numeros, valor);
-
-      // limpa dados
-      localStorage.clear();
-    }
-
-    function voltarInicio() {
-      window.location.href = "index.html";
-    }
+    if (paymentId) verificarStatusPayment(paymentId);
+    else if (pref) verificarStatusPref(pref);
+    else console.warn("Nenhum identificador de pagamento (payment_id ou pref) fornecido.");
   </script>
 </body>
 </html>

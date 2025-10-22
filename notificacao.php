@@ -2,9 +2,9 @@
 // notificacao.php
 require 'conexao.php';
 
-$access_token = getenv('MP_ACCESS_TOKEN');
+$access_token = getenv('PAGBANK_ACCESS_TOKEN');
 if (!$access_token) {
-    $access_token = 'APP_USR-2221051077100454-101711-2e56ad1a374acc9fcb5370beb067fe35-169840778';
+    $access_token = 'c0c7c542-0150-441f-80a3-afda883eb6fa490cd9da4e38a18feda184884d6fa2dd4773-a291-4cda-a84b-d63de60c739a'; // substitua pelo token de acesso real
 }
 
 // lê o corpo da notificação
@@ -20,7 +20,7 @@ if (!isset($data['data']['id'])) {
 $payment_id = $data['data']['id'];
 
 // consulta status do pagamento
-$ch = curl_init("https://api.mercadopago.com/v1/payments/$payment_id");
+$ch = curl_init("https://api.pagbank.com.br/v1/payments/$payment_id");
 curl_setopt_array($ch, [
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_HTTPHEADER => [
@@ -74,4 +74,4 @@ if ($pagamento['status'] === 'approved') {
 
 http_response_code(200);
 echo "OK";
-
+?>

@@ -1,4 +1,4 @@
-// script.js (versão Mercado Pago checkout pro)
+// script.js (versão PagBank checkout pro)
 function iniciarContador() {
   const destino = new Date("Dec 24, 2025 20:00:00").getTime();
   setInterval(() => {
@@ -88,8 +88,13 @@ window.addEventListener("DOMContentLoaded", () => {
           return;
         }
 
-        // redireciona para Mercado Pago Checkout (init_point)
-        if (data.init_point) {
+        // redireciona para PagBank Checkout (init_point)
+        if (data.init_point && data.preference_id) {
+          // abre checkout em nova aba e leva a página atual para aguardar
+          window.open(data.init_point, "_blank");
+          // navega para página de aguardo com referência da preferência
+          window.location.href = `pagamento_aguardando.html?pref=${encodeURIComponent(data.preference_id)}`;
+        } else if (data.init_point) {
           window.location.href = data.init_point;
         } else {
           alert("Resposta inválida do servidor de pagamento.");
@@ -105,4 +110,3 @@ window.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
-
