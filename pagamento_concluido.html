@@ -1,107 +1,23 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pagamento Concluído - IPR São Miguel</title>
-  <link rel="stylesheet" href="style.css">
-  <style>
-    body {
-      background: linear-gradient(to bottom right, #fffbea, #f9f9f9);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      text-align: center;
-      font-family: 'Poppins', sans-serif;
-    }
+<script>
+async function carregarNumeros() {
+  const params = new URLSearchParams(window.location.search);
+  const pref = params.get('pref');
 
-    .sucesso {
-      background: #fff;
-      padding: 40px;
-      border-radius: 20px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.1);
-      max-width: 400px;
-      animation: fadeIn 0.6s ease;
-    }
+  if (!pref) {
+    document.getElementById("numeros").innerText = "ID não informado.";
+    return;
+  }
 
-    h2 {
-      color: #27ae60;
-      margin-bottom: 10px;
-    }
+  const resp = await fetch(`verificar_pref.php?pref=${encodeURIComponent(pref)}`);
+  const data = await resp.json();
 
-    .numeros {
-      margin: 20px 0;
-      font-size: 1.2em;
-      color: #e67e22;
-      font-weight: 600;
-    }
-
-    button {
-      background: #f39c12;
-      color: white;
-      border: none;
-      padding: 12px 25px;
-      border-radius: 25px;
-      font-size: 1em;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    button:hover {
-      background: #d35400;
-      transform: scale(1.05);
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: scale(0.9); }
-      to { opacity: 1; transform: scale(1); }
-    }
-  </style>
-</head>
-<body>
-  <div class="sucesso">
-    <h2>🎉 Pagamento realizado com sucesso!</h2>
-    <p>Seus números da rifa foram sorteados automaticamente:</p>
-    <div id="numeros" class="numeros"></div>
-    <p>Você também receberá uma mensagem no WhatsApp com os detalhes.</p>
-    <button onclick="voltarInicio()">Voltar à Página Principal</button>
-  </div>
-
-  <script>
-    function gerarNumeros(qtd) {
-      const numeros = [];
-      while (numeros.length < qtd) {
-        const n = Math.floor(Math.random() * 999) + 1;
-        if (!numeros.includes(n)) numeros.push(n);
-      }
-      return numeros.sort((a, b) => a - b);
-    }
-
-    function enviarWhatsapp(nome, telefone, numeros, valor) {
-      const mensagem = `Olá ${nome}! 🎉 Seu pagamento foi confirmado.\n\nVocê recebeu os seguintes números da rifa:\n${numeros.join(", ")}\n\nValor: R$ ${valor},00\n\nBoa sorte no sorteio! 🍀`;
-      const link = `https://wa.me/55${telefone}?text=${encodeURIComponent(mensagem)}`;
-      window.open(link, "_blank");
-    }
-
-    const nome = localStorage.getItem("compradorNome");
-    const telefone = localStorage.getItem("compradorTelefone");
-    const qtd = parseInt(localStorage.getItem("cotaQtd"));
-    const valor = localStorage.getItem("cotaValor");
-
-    if (nome && telefone && qtd && valor) {
-      const numeros = gerarNumeros(qtd);
-      document.getElementById("numeros").innerText = numeros.join(", ");
-      enviarWhatsapp(nome, telefone, numeros, valor);
-
-      // limpa dados
-      localStorage.clear();
-    }
-
-    function voltarInicio() {
-      window.location.href = "index.html";
-    }
-  </script>
-</body>
-</html>
+  if (data.status === "aprovado" && data.numeros) {
+    const numeros = JSON.parse(data.numeros);
+    document.getElementById("numeros").innerText = numeros.join(", ");
+  } else {
+    document.getElementById("numeros").innerText = "Pagamento ainda não confirmado.";
+  }
+}
+carregarNumeros();
+</script>
 

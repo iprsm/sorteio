@@ -1,0 +1,54 @@
+* Could not resolve host: sandbox.api.pagbank.com.br
+* Closing connection 0
+* Could not resolve host: ws.sandbox.api.pagbank.com.br
+* Closing connection 0
+*   Trying 104.18.30.230...
+* TCP_NODELAY set
+* Connected to sandbox.api.pagseguro.com (104.18.30.230) port 443 (#0)
+* ALPN, offering http/1.1
+* successfully set certificate verify locations:
+*   CAfile: /etc/pki/tls/certs/ca-bundle.crt
+  CApath: none
+* SSL connection using TLSv1.3 / TLS_AES_256_GCM_SHA384
+* ALPN, server accepted to use http/1.1
+* Server certificate:
+*  subject: CN=sandbox.api.pagseguro.com
+*  start date: Oct  2 00:00:00 2024 GMT
+*  expire date: Oct 30 23:59:59 2025 GMT
+*  subjectAltName: host "sandbox.api.pagseguro.com" matched cert's "sandbox.api.pagseguro.com"
+*  issuer: C=US; O=DigiCert Inc; OU=www.digicert.com; CN=RapidSSL TLS RSA CA G1
+*  SSL certificate verify ok.
+> POST /orders HTTP/1.1
+Host: sandbox.api.pagseguro.com
+Accept: */*
+Content-Type: application/json
+Authorization: Bearer cd5197ed-5397-466b-853d-3439ea40ce42643cb79747bca3d5489631f5f2794aabc4bc-6123-46fd-b616-71fac4c12699
+Content-Length: 645
+
+* upload completely sent off: 645 out of 645 bytes
+< HTTP/1.1 401 Unauthorized
+< Date: Wed, 22 Oct 2025 21:17:50 GMT
+< Content-Type: application/json
+< Content-Length: 108
+< Connection: keep-alive
+< Server: cloudflare
+< CF-Ray: 992c060ebe656234-GRU
+< CF-Cache-Status: DYNAMIC
+< Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+< Expires: 0
+< Strict-Transport-Security: max-age=15552000; includeSubDomains
+< Pragma: no-cache
+< referrer-policy: no-referrer
+< x-amz-apigw-id: S3h_pFOFoAMEG0w=
+< x-amzn-remapped-connection: keep-alive
+< x-amzn-remapped-content-length: 108
+< x-amzn-remapped-date: Wed, 22 Oct 2025 21:17:50 GMT
+< x-amzn-remapped-server: envoy
+< x-amzn-requestid: c373242d-8c2d-4929-b4ef-2820db54ff5d
+< x-content-type-options: nosniff
+< x-envoy-upstream-service-time: 996
+< x-frame-options: DENY
+< x-xss-protection: 1 ; mode=block
+< Set-Cookie: __cf_bm=thkItbmq7tboniJlv_9UiFXcoGp0gkXQLiDTdaOLQeM-1761167870-1.0.1.1-WndSZPWB2QCv6MTMPWFF3VVugcOAjdKtwqIRxWGpkJA2kVu8ysy14pFOHmd2.kwa0n54Biz8cJL33dzKWPpT9LJFgaQjssQDeHdJS19LwDk; path=/; expires=Wed, 22-Oct-25 21:47:50 GMT; domain=.pagseguro.com; HttpOnly; Secure
+< 
+* Connection #0 to host sandbox.api.pagseguro.com left intact

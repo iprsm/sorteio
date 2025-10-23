@@ -1,88 +1,16 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Aguardando Confirmação - IPR São Miguel</title>
-  <link rel="stylesheet" href="style.css">
-  <style>
-    body {
-      background: linear-gradient(to bottom right, #fffbea, #f9f9f9);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      text-align: center;
-      font-family: 'Poppins', sans-serif;
-    }
-    .loading {
-      background: #fff;
-      padding: 40px;
-      border-radius: 20px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.1);
-      max-width: 400px;
-    }
-    .spinner {
-      border: 6px solid #f3f3f3;
-      border-top: 6px solid #f39c12;
-      border-radius: 50%;
-      width: 60px;
-      height: 60px;
-      animation: spin 1s linear infinite;
-      margin: 20px auto;
-    }
-    @keyframes spin { 100% { transform: rotate(360deg); } }
-  </style>
-</head>
-<body>
-  <div class="loading">
-    <h2>⏳ Aguardando confirmação do pagamento...</h2>
-    <div class="spinner"></div>
-    <p>Isso pode levar alguns segundos após o pagamento PIX.</p>
-  </div>
+<script>
+const params = new URLSearchParams(window.location.search);
+const pref = params.get('pref');
 
-  <script>
-    const searchParams = new URLSearchParams(window.location.search);
-    const paymentId = searchParams.get("payment_id");
-    const pref = searchParams.get("pref");
+async function verificarStatus() {
+  const resp = await fetch(`verificar_pref.php?pref=${encodeURIComponent(pref)}`);
+  const data = await resp.json();
 
-    async function verificarStatusPayment(paymentId) {
-      try {
-        const response = await fetch(`verificar_pagamento.php?payment_id=${paymentId}`);
-        const data = await response.json();
+  if (data.status === "aprovado" || data.status === "approved" || data.status === "PAID") {
+    window.location.href = `pagamento_concluido.html?pref=${pref}`;
+  }
+}
 
-        if (data.status === "approved") {
-          window.location.href = "pagamento_concluido.html";
-        } else {
-          setTimeout(() => verificarStatusPayment(paymentId), 5000);
-        }
-      } catch (err) {
-        console.error("Erro ao verificar pagamento:", err);
-        setTimeout(() => verificarStatusPayment(paymentId), 8000);
-      }
-    }
-
-    async function verificarStatusPref(pref) {
-      try {
-        const response = await fetch(`verificar_pref.php?pref=${encodeURIComponent(pref)}`);
-        const data = await response.json();
-
-        if (data.status === "aprovado" || data.status === "approved") {
-          // caso devolva payment_id, encaminha para concluído
-          window.location.href = "pagamento_concluido.html";
-        } else {
-          setTimeout(() => verificarStatusPref(pref), 5000);
-        }
-      } catch (err) {
-        console.error("Erro ao verificar preferência:", err);
-        setTimeout(() => verificarStatusPref(pref), 8000);
-      }
-    }
-
-    if (paymentId) verificarStatusPayment(paymentId);
-    else if (pref) verificarStatusPref(pref);
-    else console.warn("Nenhum identificador de pagamento (payment_id ou pref) fornecido.");
-  </script>
-</body>
-</html>
+setInterval(verificarStatus, 3000);
+</script>
 

@@ -1,0 +1,16 @@
+2025-10-22T12:35:48-03:00 DNS_RESOLVE_FAIL: sandbox.api.pagbank.com.br não resolvido
+2025-10-22T13:24:38-03:00 DNS_RESOLVE_FAIL: sandbox.api.pagbank.com.br não resolvido
+2025-10-22T13:24:38-03:00 CURL_ERROR: Could not resolve host: sandbox.api.pagbank.com.br
+2025-10-22T13:32:24-03:00 DNS_RESOLVE_FAIL: ws.sandbox.api.pagbank.com.br não resolvido
+2025-10-22T13:32:24-03:00 CURL_ERROR: Could not resolve host: ws.sandbox.api.pagbank.com.br
+2025-10-22T17:06:08-03:00 DNS_RESOLVE_FAIL: api.pagbank.com.br não resolvido
+2025-10-22T17:29:49-03:00 DNS_RESOLVE_FAIL: api.pagseguro.com.br não resolvido
+2025-10-22T17:39:51-03:00 DNS_RESOLVE_FAIL: api.pagbank.com.br não resolvido
+2025-10-22T17:44:59-03:00 DNS_RESOLVE_FAIL: api.pagbank.com.br não resolvido
+2025-10-22T17:47:04-03:00 DNS_RESOLVE_FAIL: api.pagbank.com.br não resolvido
+2025-10-22T17:52:33-03:00 DNS_RESOLVE_FAIL: api.pagbank.com.br não resolvido
+2025-10-22T17:54:20-03:00 DNS_RESOLVE_FAIL: api.pagbank.com.br não resolvido
+2025-10-22T17:55:57-03:00 DNS_RESOLVE_FAIL: api.pagbank.com.br não resolvido
+2025-10-22T18:09:12-03:00 DNS_RESOLVE_FAIL: api.pagbank.com.br não resolvido
+2025-10-22T18:17:49-03:00 DNS_RESOLVED: sandbox.api.pagseguro.com => 104.18.31.230
+2025-10-22T18:17:51-03:00 HTTP 401 RESPONSE: {"error_messages":[{"code":"UNAUTHORIZED","description":"Invalid credential. Review AUTHORIZATION header"}]}
